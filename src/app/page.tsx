@@ -1,62 +1,144 @@
-'use client';
+'use client'; // This is essential! It tells Next.js this is a Client Component.
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+
+// We need to declare these global variables so TypeScript doesn't complain
+// These are defined in the scripts we loaded in layout.tsx
+declare var $: any;
+declare var Jscex: any;
+declare var Tree: any;
 
 export default function Home() {
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    if (typeof $ === 'undefined' || typeof Jscex === 'undefined' || typeof Tree === 'undefined') {
+      console.error("Required scripts are not loaded yet.");
+      return;
+    }
+
+    const canvas = $('#canvas');
+    if (!canvas[0] || !canvas[0].getContext) {
+      $("#error").show();
+      return;
+    }
+
+    const width = canvas.width();
+    const height = canvas.height();
+    canvas.attr("width", width);
+    canvas.attr("height", height);
+
+    const opts = {
+      seed: { x: width / 2 - 20, color: "rgb(190, 26, 37)", scale: 2 },
+      branch: [[535, 680, 570, 250, 500, 200, 30, 100, [[540, 500, 455, 417, 340, 400, 13, 100, [[450, 435, 434, 430, 394, 395, 2, 40]]], [550, 445, 600, 356, 680, 345, 12, 100, [[578, 400, 648, 409, 661, 426, 3, 80]]], [539, 281, 537, 248, 534, 217, 3, 40], [546, 397, 413, 247, 328, 244, 9, 80, [[427, 286, 383, 253, 371, 205, 2, 40], [498, 345, 435, 315, 395, 330, 4, 60]]], [546, 357, 608, 252, 678, 221, 6, 100, [[590, 293, 646, 277, 648, 271, 2, 80]]]]]],
+      bloom: { num: 700, width: 1080, height: 650 },
+      footer: { width: 1200, height: 5, speed: 10 }
+    };
+
+    const tree = new Tree(canvas[0], width, height, opts);
+    const seed = tree.seed;
+    const foot = tree.footer;
+    let hold = 1;
+
+    const playAudio = () => {
+      audioRef.current?.play().catch(e => console.error("Audio play failed:", e));
+    };
+
+    canvas.on('click', function(e: any) {
+      playAudio();
+      const offset = canvas.offset();
+      const x = e.pageX - offset.left;
+      const y = e.pageY - offset.top;
+      if (seed.hover(x, y)) {
+        hold = 0;
+        canvas.off("click").off("mousemove").removeClass('hand');
+      }
+    }).on('mousemove', function(e: any) {
+      const offset = canvas.offset();
+      const x = e.pageX - offset.left;
+      const y = e.pageY - offset.top;
+      canvas.toggleClass('hand', seed.hover(x, y));
+    });
+
+    // This is the core logic fix.
+    const runAsync = eval(Jscex.compile("async", function () {
+      // The function is now a REGULAR function, not a generator (no *)
+      // We must use the special "$await" function provided by the library.
+
+      // 1. Animate the seed
+      seed.draw();
+      while (hold) {
+          $await(Jscex.Async.sleep(10));
+      }
+      while (seed.canScale()) {
+          seed.scale(0.95);
+          $await(Jscex.Async.sleep(10));
+      }
+      while (seed.canMove()) {
+          seed.move(0, 2);
+          foot.draw();
+          $await(Jscex.Async.sleep(10));
+      }
+
+      // 2. Grow the tree
+      do {
+          tree.grow();
+          $await(Jscex.Async.sleep(10));
+      } while (tree.canGrow());
+      
+      // 3. Bloom the flowers
+      do {
+          tree.flower(2);
+          $await(Jscex.Async.sleep(10));
+      } while (tree.canFlower());
+
+      // 4. Move the canvas
+      tree.snapshot("p1", 240, 0, 610, 680);
+      while (tree.move("p1", 500, 0)) {
+          foot.draw();
+          $await(Jscex.Async.sleep(10));
+      }
+      foot.draw();
+      tree.snapshot("p2", 500, 0, 610, 680);
+      canvas.parent().css("background", "url(" + tree.toDataURL('image/png') + ")");
+      $await(Jscex.Async.sleep(300));
+      canvas.css("background", "none");
+      
+      // 5. Start the typewriter effect
+      $("#code").show().typewriter();
+    }));
+
+    // Finally, start the entire animation sequence.
+    runAsync().start();
+
+  }, []); // The empty array [] ensures this effect runs only once.
+
   return (
-    <div className="bg-gradient-to-br from-[#fdf8f0] via-[#fbeee5] to-[#fdf8f0] text-[#5c4d42] font-serif min-h-screen flex flex-col items-center justify-center p-8 selection:bg-[#e6d8c5]">
-      <main className="flex flex-col gap-16 max-w-3xl w-full">
-        {/* Header Section */}
-        <header className="text-center animate-fade-in-down">
-          <h1 className="text-6xl md:text-7xl font-bold tracking-tight text-[#a87a64] drop-shadow-md">
-            Төрсөн өдрийн мэнд, Ээжээ 🌸
-          </h1>
-          <p className="mt-6 text-lg md:text-xl text-[#6d5c50] italic">
-            Бидэнд амьдрал бэлэглэсэн хүнд зориулсан үгсийн цоморлиг.
-          </p>
-        </header>
+    <div id="main">
+      <div id="error">Please use <a href="http://www.google.cn/chrome/intl/zh-CN/landing_chrome.html">Chrome</a> or <a href="http://firefox.com.cn/download/">Firefox</a></div>
+      
 
-        {/* A Letter to Mom Section */}
-        <section className="animate-fade-in-up animation-delay-300 bg-white/70 shadow-md rounded-2xl p-8 border border-[#e5d5c5]">
-          <h2 className="text-3xl font-semibold text-[#8b5e34] border-b border-[#dcd0b8] pb-3 mb-6">
-            Танд зориулсан захидал
-          </h2>
-          <p className="text-lg leading-relaxed text-[#5c4d42] animate-text-reveal">
-            Ээжээ, таны хайр миний амьдралын бүхий л мөчид гэрэлтэгч гэрэл байсаар ирсэн. 
-            Энэхүү төрсөн өдрөөр тань зүрх сэтгэлийн тань багтаамж дүүрэн баяр баясгалан, амар амгаланг хүсье. 
-            Миний түшиг тулгуур, миний дундаршгүй урам зориг байдагт тань баярлалаа. 
-            Таны заасан сургаал, гаргасан золиос, хуваалцсан хайр бүхэн намайг өнөөдрийн намайг бүтээсэн юм шүү. Би үүрд талархах болно.
-          </p>
-        </section>
-
-        {/* Memories Section */}
-        <section className="animate-fade-in-up animation-delay-600 bg-white/70 shadow-md rounded-2xl p-8 border border-[#e5d5c5]">
-          <h2 className="text-3xl font-semibold text-[#8b5e34] border-b border-[#dcd0b8] pb-3 mb-6">
-            Хамгийн нандин дурсамжууд
-          </h2>
-          <ul className="list-none space-y-5 text-lg leading-relaxed animate-text-reveal animation-delay-900">
-            <li className="flex items-start"><span className="text-[#a87a64] mr-3 mt-1 text-xl">✦</span>Унтахын өмнө надад ном уншиж өгдөг, дүр бүрийн хоолойг дуурайдаг байсан тань.</li>
-            <li className="flex items-start"><span className="text-[#a87a64] mr-3 mt-1 text-xl">✦</span>Гал тогоонд таны алдарт шоколадтай жигнэмгийг хийж сурахад, аз жаргалтайгаар бүхнийг тарааж байсан үе.</li>
-            <li className="flex items-start"><span className="text-[#a87a64] mr-3 mt-1 text-xl">✦</span>Бидэнд цаг гарган ярилцаж, надад хамгийн хэрэгтэй үед төгс зөвлөгөө өгсөн тэр мөч.</li>
-          </ul>
-        </section>
-
-        {/* Wishes for the Future Section */}
-        <section className="animate-fade-in-up animation-delay-1200 bg-white/70 shadow-md rounded-2xl p-8 border border-[#e5d5c5]">
-          <h2 className="text-3xl font-semibold text-[#8b5e34] border-b border-[#dcd0b8] pb-3 mb-6">
-            Ирэх жилийн ерөөл
-          </h2>
-          <p className="text-lg leading-relaxed text-[#5c4d42] animate-text-reveal animation-delay-1500">
-            Таны ирэх жил амар амгалангийн мөчүүд, гайхалтай шинэ дурсамжууд, инээд хөөр, бусдад харамгүй түгээдэг хайраар тань дүүрэн байх болтугай.
-            Зөвхөн өнөөдөр гэлтгүй, өдөр бүр хайрлуулж, хүндлэгдээрэй.
-          </p>
-        </section>
-      </main>
-
-      <footer className="text-center mt-20 text-[#7d6a5d] animate-fade-in-up animation-delay-1800">
-        <p className="text-base">Хязгааргүй их хайраар,</p>
-        <p className="mt-3 text-xl font-semibold tracking-wider text-[#8b5e34]">Д.Мөнхбаатар</p>
-      </footer>
+      <div id="wrap">
+        <div id="text">
+          <div id="code">
+            <span className="say">Хайрт Ээждээ 💞</span><br />
+            <span className="say">47 насны төрсөн өдрийн мэнд! 🎈</span><br />
+            <span className="say">Та бол дэлхийн хамгийн гайхалтай ээж. 💖</span><br />
+            <span className="say">Таны минь хайр хамгийн том эрдэнэ. ✨</span><br />
+            <span className="say">Таны хийсэн бүхэнд баярлалаа. 🙏</span><br />
+            <span className="say">Ирэх жил тань инээд хөөр,</span><br />
+            <span className="say">аз жаргалаар дүүрэн байх болтугай. 🥳</span><br />
+            <span className="say">Хайртай шүү,</span><br />
+            <span className="say">Д.Мөнхбаатар</span>
+          </div>
+        </div>
+        
+        <div id="clock-box">
+          ❤️ <span id="clock">Гайхамшигт 47 жилийг тэмдэглэцгээе</span> ❤️
+        </div>
+        
+        <canvas id="canvas" width="1100" height="680"></canvas>
+      </div>
     </div>
   );
 }
