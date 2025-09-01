@@ -1,31 +1,42 @@
-// app/layout.tsx - USE THIS CORRECTED CODE
-
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from 'next/script'; // 1. Import the Script component
-
-import './globals.css'; // 2. Import your global stylesheet directly
+import Script from 'next/script'; // Import the Script component
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: "For My Mom",
-  description: "Happy Birthday!",
+export const metadata: Metadata = {
+  title: "HBD Love",
+  description: "A special birthday message",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en">
+      <head>
+        {/* Load the CSS for the animation */}
+        <link rel="stylesheet" type="text/css" href="/love-tree/default.css" />
+      </head>
       <body className={inter.className}>
         {children}
-        
-        {/* 3. Use the Script component to load your external libraries */}
-        {/* The "afterInteractive" strategy ensures they load after the page is usable */}
-        {/* The order here is important if scripts depend on each other */}
-        <Script src="pubcic/love-tree/jquery.min.js" strategy="afterInteractive" />
-        <Script src="public/love-tree/jscex.min.js" strategy="afterInteractive" />
-        <Script src="public/love-tree/js/tree.js" strategy="afterInteractive" />
-        <Script src="public/love-tree/jquery.typewriter.js" strategy="afterInteractive" /> 
+
+        {/* Load all the necessary JavaScript files for the animation */}
+        {/* The 'beforeInteractive' strategy ensures they load before the page logic runs */}
+        <Script src="/love-tree/jquery.min.js" strategy="beforeInteractive" />
+        <Script src="/love-tree/jscex.min.js" strategy="beforeInteractive" />
+        <Script src="/love-tree/jscex-parser.js" strategy="beforeInteractive" />
+        <Script src="/love-tree/jscex-jit.js" strategy="beforeInteractive" />
+        <Script src="/love-tree/jscex-builderbase.min.js" strategy="beforeInteractive" />
+        <Script src="/love-tree/jscex-async.min.js" strategy="beforeInteractive" />
+        <Script src="/love-tree/jscex-async-powerpack.min.js" strategy="beforeInteractive" />
+        <Script src="/love-tree/functions.js" strategy="beforeInteractive" />
+        <Script src="/love-tree/love.js" strategy="beforeInteractive" />
       </body>
     </html>
   );
+
 }

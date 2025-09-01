@@ -4,15 +4,10 @@ import React, { useEffect, useRef } from 'react';
 
 // We need to declare these global variables so TypeScript doesn't complain
 // These are defined in the scripts we loaded in layout.tsx
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const $: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const $: any; // Use const for global declarations if they won't be reassigned
 declare const Jscex: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Tree: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const $await: any;
-
 export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -49,10 +44,11 @@ export default function Home() {
       audioRef.current?.play().catch(e => console.error("Audio play failed:", e));
     };
 
+    // Correctly type the event parameter for jQuery
     canvas.on('click', function(e: JQuery.ClickEvent) {
       playAudio();
       const offset = canvas.offset();
-      if (!offset) return;
+      if (!offset) return; // Add a check for offset being undefined
       const x = e.pageX - offset.left;
       const y = e.pageY - offset.top;
       if (seed.hover(x, y)) {
@@ -67,7 +63,12 @@ export default function Home() {
       canvas.toggleClass('hand', seed.hover(x, y));
     });
 
+    // This is the core logic fix.
     const runAsync = eval(Jscex.compile("async", function () {
+      // The function is now a REGULAR function, not a generator (no *)
+      // We must use the special "$await" function provided by the library.
+
+      // 1. Animate the seed
       seed.draw();
       while (hold) {
           $await(Jscex.Async.sleep(10));
@@ -82,16 +83,19 @@ export default function Home() {
           $await(Jscex.Async.sleep(10));
       }
 
+      // 2. Grow the tree
       do {
           tree.grow();
           $await(Jscex.Async.sleep(10));
       } while (tree.canGrow());
       
+      // 3. Bloom the flowers
       do {
           tree.flower(2);
           $await(Jscex.Async.sleep(10));
       } while (tree.canFlower());
 
+      // 4. Move the canvas
       tree.snapshot("p1", 240, 0, 610, 680);
       while (tree.move("p1", 500, 0)) {
           foot.draw();
@@ -103,12 +107,14 @@ export default function Home() {
       $await(Jscex.Async.sleep(300));
       canvas.css("background", "none");
       
+      // 5. Start the typewriter effect
       $("#code").show().typewriter();
     }));
 
+    // Finally, start the entire animation sequence.
     runAsync().start();
 
-  }, []);
+  }, []); // The empty array [] ensures this effect runs only once.
 
   return (
     <div id="main">
