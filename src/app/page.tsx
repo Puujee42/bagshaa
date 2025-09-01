@@ -4,10 +4,10 @@ import React, { useEffect, useRef } from 'react';
 
 // We need to declare these global variables so TypeScript doesn't complain
 // These are defined in the scripts we loaded in layout.tsx
-declare var $: any;
-declare var Jscex: any;
-declare var Tree: any;
-
+declare const $: any; // Use const for global declarations if they won't be reassigned
+declare const Jscex: any;
+declare const Tree: any;
+declare const $await: any;
 export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -23,8 +23,8 @@ export default function Home() {
       return;
     }
 
-    const width = canvas.width();
-    const height = canvas.height();
+    const width: number = canvas.width();
+    const height: number = canvas.height();
     canvas.attr("width", width);
     canvas.attr("height", height);
 
@@ -44,17 +44,20 @@ export default function Home() {
       audioRef.current?.play().catch(e => console.error("Audio play failed:", e));
     };
 
-    canvas.on('click', function(e: any) {
+    // Correctly type the event parameter for jQuery
+    canvas.on('click', function(e: JQuery.ClickEvent) {
       playAudio();
       const offset = canvas.offset();
+      if (!offset) return; // Add a check for offset being undefined
       const x = e.pageX - offset.left;
       const y = e.pageY - offset.top;
       if (seed.hover(x, y)) {
         hold = 0;
         canvas.off("click").off("mousemove").removeClass('hand');
       }
-    }).on('mousemove', function(e: any) {
+    }).on('mousemove', function(e: JQuery.MouseMoveEvent) {
       const offset = canvas.offset();
+      if (!offset) return;
       const x = e.pageX - offset.left;
       const y = e.pageY - offset.top;
       canvas.toggleClass('hand', seed.hover(x, y));
@@ -117,7 +120,6 @@ export default function Home() {
     <div id="main">
       <div id="error">Please use <a href="http://www.google.cn/chrome/intl/zh-CN/landing_chrome.html">Chrome</a> or <a href="http://firefox.com.cn/download/">Firefox</a></div>
       
-
       <div id="wrap">
         <div id="text">
           <div id="code">
