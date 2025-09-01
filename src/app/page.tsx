@@ -55,7 +55,7 @@ export default function Home() {
 
       <footer className="text-center mt-20 text-[#7d6a5d] animate-fade-in-up animation-delay-1800">
         <p className="text-base">Хязгааргүй их хайраар,</p>
-        <p className="mt-3 text-xl font-semibold tracking-wider text-[#8b5e34]">[Таны Нэр]</p>
+        <p className="mt-3 text-xl font-semibold tracking-wider text-[#8b5e34]">Д.Мөнхбаатар</p>
       </footer>
     </div>
   );
