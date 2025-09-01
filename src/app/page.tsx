@@ -1,91 +1,95 @@
-// src/app/page.tsx - FINAL CORRECTED CODE
-
 'use client'; 
 
 import React, { useEffect, useRef } from 'react';
 
-// THESE COMMENTS ARE REQUIRED TO FIX THE BUILD ERRORS
+// We no longer need Jscex or $await. We only need jQuery and Tree.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const $: any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const Jscex: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Tree: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const $await: any;
 
 export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    if (typeof $ === 'undefined' || typeof Jscex === 'undefined' || typeof Tree === 'undefined') {
-      return;
-    }
-    const canvas = $('#canvas');
-    if (!canvas[0] || !canvas[0].getContext) { $("#error").show(); return; }
-    const width: number = canvas.width();
-    const height: number = canvas.height();
-    canvas.attr("width", width);
-    canvas.attr("height", height);
-    const opts = {
-      seed: { x: width / 2 - 20, color: "rgb(190, 26, 37)", scale: 2 },
-      branch: [[535, 680, 570, 250, 500, 200, 30, 100, [[540, 500, 455, 417, 340, 400, 13, 100, [[450, 435, 434, 430, 394, 395, 2, 40]]], [550, 445, 600, 356, 680, 345, 12, 100, [[578, 400, 648, 409, 661, 426, 3, 80]]], [539, 281, 537, 248, 534, 217, 3, 40], [546, 397, 413, 247, 328, 244, 9, 80, [[427, 286, 383, 253, 371, 205, 2, 40], [498, 345, 435, 315, 395, 330, 4, 60]]], [546, 357, 608, 252, 678, 221, 6, 100, [[590, 293, 646, 277, 648, 271, 2, 80]]]]]],
-      bloom: { num: 700, width: 1080, height: 650 },
-      footer: { width: 1200, height: 5, speed: 10 }
-    };
-    const tree = new Tree(canvas[0], width, height, opts);
-    const seed = tree.seed;
-    const foot = tree.footer;
-    let hold = 1;
-    const playAudio = () => { audioRef.current?.play().catch(e => console.error("Audio play failed:", e)); };
-    canvas.on('click', function(e: JQuery.ClickEvent) {
-      playAudio();
-      const offset = canvas.offset();
-      if (!offset) return;
-      const x = e.pageX - offset.left;
-      const y = e.pageY - offset.top;
-      if (seed.hover(x, y)) { hold = 0; canvas.off("click").off("mousemove").removeClass('hand'); }
-    }).on('mousemove', function(e: JQuery.MouseMoveEvent) {
-      const offset = canvas.offset();
-      if (!offset) return;
-      const x = e.pageX - offset.left;
-      const y = e.pageY - offset.top;
-      canvas.toggleClass('hand', seed.hover(x, y));
-    });
-    const runAsync = eval(Jscex.compile("async", function () {
-      seed.draw();
-      while (hold) { $await(Jscex.Async.sleep(10)); }
-      while (seed.canScale()) { seed.scale(0.95); $await(Jscex.Async.sleep(10)); }
-      while (seed.canMove()) { seed.move(0, 2); foot.draw(); $await(Jscex.Async.sleep(10)); }
-      
-      // *** THE FINAL FIX: An infinite "for" loop ***
-      for (;;) {
-          tree.grow();
-          $await(Jscex.Async.sleep(10));
-          if (!tree.canGrow()) {
-              break;
-          }
+    // A modern "sleep" function using Promises, which is what Jscex tried to do.
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // This is our new animation function using native async/await.
+    const runAnimation = async () => {
+      if (typeof $ === 'undefined' || typeof Tree === 'undefined') {
+        return;
       }
       
-      // *** THE FINAL FIX: An infinite "for" loop ***
-      for (;;) {
+      const canvas = $('#canvas');
+      if (!canvas[0] || !canvas[0].getContext) { $("#error").show(); return; }
+      
+      const width: number = canvas.width();
+      const height: number = canvas.height();
+      canvas.attr("width", width);
+      canvas.attr("height", height);
+      
+      const opts = {
+        seed: { x: width / 2 - 20, color: "rgb(190, 26, 37)", scale: 2 },
+        branch: [[535, 680, 570, 250, 500, 200, 30, 100, [[540, 500, 455, 417, 340, 400, 13, 100, [[450, 435, 434, 430, 394, 395, 2, 40]]], [550, 445, 600, 356, 680, 345, 12, 100, [[578, 400, 648, 409, 661, 426, 3, 80]]], [539, 281, 537, 248, 534, 217, 3, 40], [546, 397, 413, 247, 328, 244, 9, 80, [[427, 286, 383, 253, 371, 205, 2, 40], [498, 345, 435, 315, 395, 330, 4, 60]]], [546, 357, 608, 252, 678, 221, 6, 100, [[590, 293, 646, 277, 648, 271, 2, 80]]]]]],
+        bloom: { num: 700, width: 1080, height: 650 },
+        footer: { width: 1200, height: 5, speed: 10 }
+      };
+
+      const tree = new Tree(canvas[0], width, height, opts);
+      const seed = tree.seed;
+      const foot = tree.footer;
+      let hold = 1;
+
+      const playAudio = () => { audioRef.current?.play().catch(e => console.error("Audio play failed:", e)); };
+      
+      canvas.on('click', function(e: JQuery.ClickEvent) {
+        playAudio();
+        const offset = canvas.offset();
+        if (!offset) return;
+        const x = e.pageX - offset.left;
+        const y = e.pageY - offset.top;
+        if (seed.hover(x, y)) { 
+          hold = 0; 
+          canvas.off("click").off("mousemove").removeClass('hand'); 
+        }
+      }).on('mousemove', function(e: JQuery.MouseMoveEvent) {
+        const offset = canvas.offset();
+        if (!offset) return;
+        const x = e.pageX - offset.left;
+        const y = e.pageY - offset.top;
+        canvas.toggleClass('hand', seed.hover(x, y));
+      });
+
+      // NO MORE EVAL, NO MORE JSCEX. Just modern JavaScript.
+      seed.draw();
+      while (hold) { await sleep(10); }
+      while (seed.canScale()) { seed.scale(0.95); await sleep(10); }
+      while (seed.canMove()) { seed.move(0, 2); foot.draw(); await sleep(10); }
+      
+      while (tree.canGrow()) {
+          tree.grow();
+          await sleep(10);
+      }
+      
+      while (tree.canFlower()) {
           tree.flower(2);
-          $await(Jscex.Async.sleep(10));
-          if (!tree.canFlower()) {
-              break;
-          }
+          await sleep(10);
       }
 
       tree.snapshot("p1", 240, 0, 610, 680);
-      while (tree.move("p1", 500, 0)) { foot.draw(); $await(Jscex.Async.sleep(10)); }
+      while (tree.move("p1", 500, 0)) { foot.draw(); await sleep(10); }
       foot.draw();
       tree.snapshot("p2", 500, 0, 610, 680);
       canvas.parent().css("background", "url(" + tree.toDataURL('image/png') + ")");
-      $await(Jscex.Async.sleep(300));
+      await sleep(300);
       canvas.css("background", "none");
       $("#code").show().typewriter();
-    }));
-    runAsync().start();
+    };
+
+    // Start the animation.
+    runAnimation();
+
   }, []);
 
   return (
