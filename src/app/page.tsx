@@ -58,20 +58,22 @@ export default function Home() {
       while (seed.canScale()) { seed.scale(0.95); $await(Jscex.Async.sleep(10)); }
       while (seed.canMove()) { seed.move(0, 2); foot.draw(); $await(Jscex.Async.sleep(10)); }
       
-      // *** FINAL FIX: REWRITTEN LOOP 1 (PRIME THE PUMP) ***
-      tree.grow();
-      $await(Jscex.Async.sleep(10));
-      while (tree.canGrow()) {
+      // *** THE FINAL FIX: An infinite "for" loop ***
+      for (;;) {
           tree.grow();
           $await(Jscex.Async.sleep(10));
+          if (!tree.canGrow()) {
+              break;
+          }
       }
       
-      // *** FINAL FIX: REWRITTEN LOOP 2 (PRIME THE PUMP) ***
-      tree.flower(2);
-      $await(Jscex.Async.sleep(10));
-      while (tree.canFlower()) {
+      // *** THE FINAL FIX: An infinite "for" loop ***
+      for (;;) {
           tree.flower(2);
           $await(Jscex.Async.sleep(10));
+          if (!tree.canFlower()) {
+              break;
+          }
       }
 
       tree.snapshot("p1", 240, 0, 610, 680);
