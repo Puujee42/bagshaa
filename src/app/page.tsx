@@ -104,7 +104,7 @@ export default function Home() {
             <span className="say">Таны минь хайр хамгийн том эрдэнэ. ✨</span><br />
             <span className="say">Таны хийсэн бүхэнд баярлалаа. 🙏</span><br />
             <span className="say">Ирэх жил тань инээд хөөр,</span><br />
-            <span className="say">аз жаргалаар дүүрэн байх болтуgay. 🥳</span><br />
+            <span className="say">аз жаргалаар дүүрэн байг. 🥳</span><br />
             <span className="say">Хайртай шүү,</span><br />
             <span className="say">Д.Мөнхбаатар</span>
           </div>
