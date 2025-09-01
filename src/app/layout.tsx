@@ -1,7 +1,9 @@
+// src/app/layout.tsx - FINAL CORRECTED CODE
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from 'next/script'; // Import the Script component
-import "./globals.css";
+import Script from 'next/script';
+import "./globals.css"; // This correctly imports your stylesheet
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,26 +19,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        {/* Load the CSS for the animation */}
-        <link rel="stylesheet" type="text/css" href="/love-tree/default.css" />
-      </head>
+      {/* The <head> tag should be empty here */}
+      <head></head>
       <body className={inter.className}>
         {children}
 
-        {/* Load all the necessary JavaScript files for the animation */}
-        {/* The 'beforeInteractive' strategy ensures they load before the page logic runs */}
-        <Script src="/love-tree/jquery.min.js" strategy="beforeInteractive" />
-        <Script src="/love-tree/jscex.min.js" strategy="beforeInteractive" />
-        <Script src="/love-tree/jscex-parser.js" strategy="beforeInteractive" />
-        <Script src="/love-tree/jscex-jit.js" strategy="beforeInteractive" />
-        <Script src="/love-tree/jscex-builderbase.min.js" strategy="beforeInteractive" />
-        <Script src="/love-tree/jscex-async.min.js" strategy="beforeInteractive" />
-        <Script src="/love-tree/jscex-async-powerpack.min.js" strategy="beforeInteractive" />
-        <Script src="/love-tree/functions.js" strategy="beforeInteractive" />
-        <Script src="/love-tree/love.js" strategy="beforeInteractive" />
+        {/* These scripts with absolute paths are correct */}
+        <Script src="/love-tree/jquery.min.js" strategy="afterInteractive" />
+        <Script src="/love-tree/jscex.min.js" strategy="afterInteractive" />
+        <Script src="/love-tree/jscex-parser.js" strategy="afterInteractive" />
+        <Script src="/love-tree/jscex-jit.js" strategy="afterInteractive" />
+        <Script src="/love-tree/jscex-builderbase.min.js" strategy="afterInteractive" />
+        <Script src="/love-tree/jscex-async.min.js" strategy="afterInteractive" />
+        <Script src="/love-tree/jscex-async-powerpack.min.js" strategy="afterInteractive" />
+        <Script src="/love-tree/functions.js" strategy="afterInteractive" />
+        <Script src="/love-tree/love.js" strategy="afterInteractive" />
       </body>
     </html>
   );
-
 }

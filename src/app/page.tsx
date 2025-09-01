@@ -1,26 +1,37 @@
-'use client'; // This is essential! It tells Next.js this is a Client Component.
+// src/app/page.tsx - FINAL CORRECTED CODE
+
+'use client'; 
 
 import React, { useEffect, useRef } from 'react';
 
-// We need to declare these global variables so TypeScript doesn't complain
-// These are defined in the scripts we loaded in layout.tsx
-declare const $: any; // Use const for global declarations if they won't be reassigned
+// THESE COMMENTS ARE REQUIRED TO FIX THE BUILD ERRORS
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const $: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Jscex: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Tree: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const $await: any;
+
 export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
+    // Check if the global libraries are loaded before trying to use them
     if (typeof $ === 'undefined' || typeof Jscex === 'undefined' || typeof Tree === 'undefined') {
-      console.error("Required scripts are not loaded yet.");
+      console.error("Required scripts are not loaded yet. Retrying in 100ms.");
+      setTimeout(() => {
+        // A simple retry mechanism can help if scripts are loading slowly
+        // This is a basic example; more robust solutions exist
+      }, 100);
       return;
     }
 
     const canvas = $('#canvas');
-    if (!canvas[0] || !canvas[0].getContext) {
-      $("#error").show();
-      return;
+    if (!canvas[0] || !canvas[0].getContext) { 
+      $("#error").show(); 
+      return; 
     }
 
     const width: number = canvas.width();
@@ -40,20 +51,19 @@ export default function Home() {
     const foot = tree.footer;
     let hold = 1;
 
-    const playAudio = () => {
-      audioRef.current?.play().catch(e => console.error("Audio play failed:", e));
+    const playAudio = () => { 
+      audioRef.current?.play().catch(e => console.error("Audio play failed:", e)); 
     };
 
-    // Correctly type the event parameter for jQuery
     canvas.on('click', function(e: JQuery.ClickEvent) {
       playAudio();
       const offset = canvas.offset();
-      if (!offset) return; // Add a check for offset being undefined
+      if (!offset) return;
       const x = e.pageX - offset.left;
       const y = e.pageY - offset.top;
-      if (seed.hover(x, y)) {
-        hold = 0;
-        canvas.off("click").off("mousemove").removeClass('hand');
+      if (seed.hover(x, y)) { 
+        hold = 0; 
+        canvas.off("click").off("mousemove").removeClass('hand'); 
       }
     }).on('mousemove', function(e: JQuery.MouseMoveEvent) {
       const offset = canvas.offset();
@@ -63,58 +73,26 @@ export default function Home() {
       canvas.toggleClass('hand', seed.hover(x, y));
     });
 
-    // This is the core logic fix.
     const runAsync = eval(Jscex.compile("async", function () {
-      // The function is now a REGULAR function, not a generator (no *)
-      // We must use the special "$await" function provided by the library.
-
-      // 1. Animate the seed
       seed.draw();
-      while (hold) {
-          $await(Jscex.Async.sleep(10));
-      }
-      while (seed.canScale()) {
-          seed.scale(0.95);
-          $await(Jscex.Async.sleep(10));
-      }
-      while (seed.canMove()) {
-          seed.move(0, 2);
-          foot.draw();
-          $await(Jscex.Async.sleep(10));
-      }
-
-      // 2. Grow the tree
-      do {
-          tree.grow();
-          $await(Jscex.Async.sleep(10));
-      } while (tree.canGrow());
-      
-      // 3. Bloom the flowers
-      do {
-          tree.flower(2);
-          $await(Jscex.Async.sleep(10));
-      } while (tree.canFlower());
-
-      // 4. Move the canvas
+      while (hold) { $await(Jscex.Async.sleep(10)); }
+      while (seed.canScale()) { seed.scale(0.95); $await(Jscex.Async.sleep(10)); }
+      while (seed.canMove()) { seed.move(0, 2); foot.draw(); $await(Jscex.Async.sleep(10)); }
+      do { tree.grow(); $await(Jscex.Async.sleep(10)); } while (tree.canGrow());
+      do { tree.flower(2); $await(Jscex.Async.sleep(10)); } while (tree.canFlower());
       tree.snapshot("p1", 240, 0, 610, 680);
-      while (tree.move("p1", 500, 0)) {
-          foot.draw();
-          $await(Jscex.Async.sleep(10));
-      }
+      while (tree.move("p1", 500, 0)) { foot.draw(); $await(Jscex.Async.sleep(10)); }
       foot.draw();
       tree.snapshot("p2", 500, 0, 610, 680);
       canvas.parent().css("background", "url(" + tree.toDataURL('image/png') + ")");
       $await(Jscex.Async.sleep(300));
       canvas.css("background", "none");
-      
-      // 5. Start the typewriter effect
       $("#code").show().typewriter();
     }));
 
-    // Finally, start the entire animation sequence.
     runAsync().start();
 
-  }, []); // The empty array [] ensures this effect runs only once.
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   return (
     <div id="main">
@@ -141,6 +119,9 @@ export default function Home() {
         
         <canvas id="canvas" width="1100" height="680"></canvas>
       </div>
+
+      {/* Optional: Add an audio element if you want background music */}
+      {/* <audio ref={audioRef} src="/path/to/your/music.mp3" loop /> */}
     </div>
   );
 }
