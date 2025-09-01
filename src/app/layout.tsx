@@ -21,10 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* 3. Use the Script component to load your external libraries */}
         {/* The "afterInteractive" strategy ensures they load after the page is usable */}
         {/* The order here is important if scripts depend on each other */}
-        <Script src="/js/jquery.min.js" strategy="afterInteractive" />
-        <Script src="/js/jscex.min.js" strategy="afterInteractive" />
-        <Script src="/js/tree.js" strategy="afterInteractive" />
-        <Script src="/js/jquery.typewriter.js" strategy="afterInteractive" /> 
+        <Script src="pubcic/love-tree/jquery.min.js" strategy="afterInteractive" />
+        <Script src="public/love-tree/jscex.min.js" strategy="afterInteractive" />
+        <Script src="public/love-tree/js/tree.js" strategy="afterInteractive" />
+        <Script src="public/love-tree/jquery.typewriter.js" strategy="afterInteractive" /> 
       </body>
     </html>
   );
